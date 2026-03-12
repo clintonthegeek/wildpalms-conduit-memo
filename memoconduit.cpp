@@ -74,8 +74,10 @@ PilotRecord* MemoConduit::backendToPalm(BackendRecord *backendRecord,
     return record;
 }
 
-bool MemoConduit::recordsEqual(PilotRecord *palm, BackendRecord *backend) const
+bool MemoConduit::recordsEqual(PilotRecord *palm, BackendRecord *backend,
+                                const SyncContext *context) const
 {
+    Q_UNUSED(context);
     if (!palm || !backend) return false;
 
     // Unpack Palm memo
@@ -114,8 +116,10 @@ bool MemoConduit::recordsEqual(PilotRecord *palm, BackendRecord *backend) const
     return true;
 }
 
-QString MemoConduit::palmRecordDescription(PilotRecord *record) const
+QString MemoConduit::palmRecordDescription(PilotRecord *record,
+                                            const SyncContext *context) const
 {
+    Q_UNUSED(context);
     if (!record) return QString();
 
     MemoMapper::Memo memo = MemoMapper::unpackMemo(record);

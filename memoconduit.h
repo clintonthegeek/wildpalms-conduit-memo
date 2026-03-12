@@ -26,7 +26,7 @@ public:
 
     QString conduitId() const override { return "memos"; }
     QString displayName() const override { return "Memos"; }
-    QString palmDatabaseName() const override { return "MemoDB"; }
+    QStringList palmDatabaseNames() const override { return {"MemoDB"}; }
     QString fileExtension() const override { return ".md"; }
 
     // ========== UI Contribution ==========
@@ -51,9 +51,11 @@ public:
     PilotRecord* backendToPalm(BackendRecord *backendRecord,
                                 SyncContext *context) override;
 
-    bool recordsEqual(PilotRecord *palm, BackendRecord *backend) const override;
+    bool recordsEqual(PilotRecord *palm, BackendRecord *backend,
+                       const SyncContext *context) const override;
 
-    QString palmRecordDescription(PilotRecord *record) const override;
+    QString palmRecordDescription(PilotRecord *record,
+                                   const SyncContext *context) const override;
 
     // ========== Conflict Display ==========
 
