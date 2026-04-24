@@ -1,0 +1,18 @@
+{
+    "KPlugin": {
+        "Id": "memo",
+        "Name": "Memo Sync",
+        "Description": "Syncs Palm MemoDB to Markdown files.",
+        "Icon": "view-pim-notes",
+        "Authors": [{ "Name": "Clinton Ignatov" }],
+        "License": "GPL",
+        "Version": "2.0"
+    },
+    "X-WildPalms-PluginType": "backend",
+    "X-WildPalms-PalmDatabases": ["MemoDB"],
+    "X-WildPalms-ClaimDescriptions": {
+        "MemoDB": "Syncs MemoDB to Markdown files."
+    },
+    "X-WildPalms-DefaultEnabled": true,
+    "X-WildPalms-SortOrder": 10
+}

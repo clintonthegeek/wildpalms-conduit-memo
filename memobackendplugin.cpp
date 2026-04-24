@@ -105,3 +105,11 @@ QString MemoBackendPlugin::formatConflictRecordHtml(
 }
 
 } // namespace WildPalms::Memo
+
+#include <KPluginFactory>
+
+K_PLUGIN_FACTORY_WITH_JSON(MemoBackendPluginFactory,
+                           "memo-backend-plugin.json",
+                           registerPlugin<WildPalms::Memo::MemoBackendPlugin>();)
+
+#include "memobackendplugin.moc"
