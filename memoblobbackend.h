@@ -24,7 +24,7 @@ namespace WildPalms::Memo {
  * encoder omits categoryName, and the decoder falls back to slot 0
  * for name-only `category:` strings.
  */
-class MemoBlobBackend : public Kalburator::Sync::IBlobBackend
+class MemoBlobBackend : public QObject, public Kalburator::Sync::IBlobBackend
 {
     Q_OBJECT
 public:
@@ -60,6 +60,13 @@ public:
         const QString &collectionId, const QDateTime &since) override;
     QStringList deletedSince(const QString &collectionId, const QDateTime &since) override;
     bool        supportsDeleteTracking() const override;
+
+Q_SIGNALS:
+    void recordCreated(const QString &recordId);
+    void recordUpdated(const QString &recordId);
+    void recordDeleted(const QString &recordId);
+    void errorOccurred(const QString &error);
+    void progressUpdated(int current, int total, const QString &message);
 
 private:
     WildPalms::PalmSync::PalmBackend              *m_palmBackend = nullptr;
