@@ -1,23 +1,22 @@
 #ifndef WILDPALMS_MEMO_MEMOBACKENDPLUGIN_H
 #define WILDPALMS_MEMO_MEMOBACKENDPLUGIN_H
 
-#include "core/ibackendplugin.h"
+#include <memory>
 
 #include <QObject>
 
+#include "core/ibackendplugin_v2.h"
+
+namespace Kalburator::Sync::QSyncCore { struct RecordSnapshot; }
+namespace WildPalms::PalmSync { class PalmBackend; }
+namespace WildPalms::Runtime { class PalmDeviceAccess; }
+
 namespace WildPalms::Memo {
 
-/**
- * @brief First new-ABI WildPalms plugin.
- *
- * Provides a MemoBlobBackend wrapping the shared PalmBackend the
- * runtime owns (reached via PalmDeviceConnection::palmBackend).
- * Surfaces MemoView as a main-window tab.
- */
-class MemoBackendPlugin : public QObject, public WildPalms::IBackendPlugin
+class MemoBackendPlugin : public QObject, public WildPalms::IBackendPluginV2
 {
     Q_OBJECT
-    Q_INTERFACES(WildPalms::IBackendPlugin)
+    Q_INTERFACES(WildPalms::IBackendPluginV2)
 public:
     explicit MemoBackendPlugin(QObject *parent = nullptr);
     ~MemoBackendPlugin() override;
@@ -29,23 +28,26 @@ public:
     QString description() const override;
     QString version()     const override;
 
-    // IBackendPlugin
-    QStringList      claimedDatabases() const override;
-    ProvidedBackends createBackends(Kalburator::Sync::ISyncHost *host,
-                                    PalmDeviceConnection         *device) override;
+    // IBackendPluginV2
+    QStringList claimedDatabases() const override;
+    std::unique_ptr<Kalburator::Sync::IBlobBackend>
+        createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device) override;
 
-    // IBackendPlugin — main view
+    // IBackendPluginV2 — main view
     bool     hasMainView()   const override;
     QWidget *createMainView(QWidget *parent) const override;
     QString  mainViewName()  const override;
     QIcon    mainViewIcon()  const override;
 
-    // IBackendPlugin — conflict presentation
+    // Conflict presentation (called by conflict UI layer; not virtual in v2)
     void    enrichConflictSnapshot(
         Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot,
-        bool isSourceSide) const override;
+        bool isSourceSide) const;
     QString formatConflictRecordHtml(
-        const Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot) const override;
+        const Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot) const;
+
+private:
+    std::unique_ptr<WildPalms::PalmSync::PalmBackend> m_palmBackend;
 };
 
 } // namespace WildPalms::Memo

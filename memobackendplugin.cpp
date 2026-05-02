@@ -4,7 +4,8 @@
 #include "memoview.h"
 
 #include "palm/codecs/memocodec.h"
-#include "palm/palmdeviceconnection.h"
+#include "palm/sync/palmbackend.h"
+#include "runtime/palmdeviceaccess.h"
 
 #include "conflictrecord.h"   // Kalburator::Sync::QSyncCore::RecordSnapshot
 
@@ -38,17 +39,12 @@ QStringList MemoBackendPlugin::claimedDatabases() const
     return { QStringLiteral("MemoDB") };
 }
 
-WildPalms::IBackendPlugin::ProvidedBackends
-MemoBackendPlugin::createBackends(Kalburator::Sync::ISyncHost *host,
-                                  PalmDeviceConnection         *device)
+std::unique_ptr<Kalburator::Sync::IBlobBackend>
+MemoBackendPlugin::createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device)
 {
-    Q_UNUSED(host)
-    ProvidedBackends out;
-    if (device) {
-        out.blob = new MemoBlobBackend(device->palmBackend(),
-                                       /*categoryStore=*/nullptr);
-    }
-    return out;
+    if (!device) return nullptr;
+    m_palmBackend = std::make_unique<WildPalms::PalmSync::PalmBackend>(device);
+    return std::make_unique<MemoBlobBackend>(m_palmBackend.get(), /*categoryStore=*/nullptr);
 }
 
 // --- Main view ---
