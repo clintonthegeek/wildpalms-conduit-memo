@@ -95,7 +95,7 @@ MemoBlobBackend::MemoBlobBackend(
     WildPalms::PalmSync::PalmBackend *palmBackend,
     WildPalms::PalmCalendar::CategoryMappingStore *categoryStore,
     QObject *parent)
-    : QObject(parent)
+    : Kalburator::Sync::SyncBackend(parent)
     , m_palmBackend(palmBackend)
     , m_categoryStore(categoryStore)
 {

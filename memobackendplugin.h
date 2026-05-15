@@ -3,48 +3,63 @@
 
 #include <memory>
 
-#include <QObject>
+#include "plugin.h"
 
-#include "core/ibackendplugin_v2.h"
-
-namespace Kalburator::Sync::QSyncCore { struct RecordSnapshot; }
+namespace Kalburator::Conflict { struct RecordSnapshot; }
+namespace Kalburator::Sync { class SyncBackend; }
 namespace WildPalms::PalmSync { class PalmBackend; }
 namespace WildPalms::Runtime { class PalmDeviceAccess; }
 
+class QIcon;
+class QWidget;
+
 namespace WildPalms::Memo {
 
-class MemoBackendPlugin : public QObject, public WildPalms::IBackendPluginV2
+/**
+ * @brief Memo plugin (K.8b): inherits Kalburator::Plugin (K.7 surface).
+ *
+ * No longer a KCoreAddons MODULE plugin. Linked STATIC and loaded
+ * in-process by PalmRuntime::registerPalmPlugins() (Task 6).
+ *
+ * Provides:
+ *   - MemoBlobBackend (lifted to SyncBackend) via createPalmBackend()
+ *     — called directly by PalmRuntime.
+ *   - MemoView as a main-window tab.
+ */
+class MemoPlugin : public Kalburator::Plugin
 {
-    Q_OBJECT
-    Q_INTERFACES(WildPalms::IBackendPluginV2)
 public:
-    explicit MemoBackendPlugin(QObject *parent = nullptr);
-    ~MemoBackendPlugin() override;
+    MemoPlugin();
+    ~MemoPlugin() override;
 
-    // IPlugin
-    QString pluginId()    const override;
-    QString displayName() const override;
-    QIcon   icon()        const override;
-    QString description() const override;
-    QString version()     const override;
+    // Kalburator::Plugin — Palm plugins don't contribute to libkalburator
+    // BackendContribution system.
+    QList<std::shared_ptr<Kalburator::Sync::BackendContribution>>
+        backendContributions() const override { return {}; }
 
-    // IBackendPluginV2
-    QStringList claimedDatabases() const override;
-    std::unique_ptr<Kalburator::Sync::IBlobBackend>
-        createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device) override;
+    // Plugin identity
+    QString pluginId()    const { return QStringLiteral("memo"); }
+    QString displayName() const;
+    QIcon   icon()        const;
+    QString description() const;
+    QString version()     const;
 
-    // IBackendPluginV2 — main view
-    bool     hasMainView()   const override;
-    QWidget *createMainView(QWidget *parent) const override;
-    QString  mainViewName()  const override;
-    QIcon    mainViewIcon()  const override;
+    // Palm backend — called directly by PalmRuntime (Task 6)
+    std::unique_ptr<Kalburator::Sync::SyncBackend>
+        createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device);
 
-    // Conflict presentation (called by conflict UI layer; not virtual in v2)
+    // Main view
+    bool     hasMainView()   const;
+    QWidget *createMainView(QWidget *parent) const;
+    QString  mainViewName()  const;
+    QIcon    mainViewIcon()  const;
+
+    // Conflict presentation (called by conflict UI layer)
     void    enrichConflictSnapshot(
-        Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot,
+        Kalburator::Conflict::RecordSnapshot &snapshot,
         bool isSourceSide) const;
     QString formatConflictRecordHtml(
-        const Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot) const;
+        const Kalburator::Conflict::RecordSnapshot &snapshot) const;
 
 private:
     std::unique_ptr<WildPalms::PalmSync::PalmBackend> m_palmBackend;

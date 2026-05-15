@@ -7,7 +7,7 @@
 #include "palm/sync/palmbackend.h"
 #include "runtime/palmdeviceaccess.h"
 
-#include "conflictrecord.h"   // Kalburator::Sync::QSyncCore::RecordSnapshot
+#include "conflictrecord.h"   // Kalburator::Conflict::RecordSnapshot
 
 #include <QIcon>
 #include <QString>
@@ -15,32 +15,26 @@
 
 namespace WildPalms::Memo {
 
-MemoBackendPlugin::MemoBackendPlugin(QObject *parent) : QObject(parent) {}
-MemoBackendPlugin::~MemoBackendPlugin() = default;
+MemoPlugin::MemoPlugin() = default;
+MemoPlugin::~MemoPlugin() = default;
 
-// --- IPlugin ---
+// --- Plugin identity ---
 
-QString MemoBackendPlugin::pluginId()    const { return QStringLiteral("memo"); }
-QString MemoBackendPlugin::displayName() const { return QStringLiteral("Memos"); }
-QIcon   MemoBackendPlugin::icon()        const
+QString MemoPlugin::displayName() const { return QStringLiteral("Memos"); }
+QIcon   MemoPlugin::icon()        const
 {
     return QIcon::fromTheme(QStringLiteral("view-pim-notes"));
 }
-QString MemoBackendPlugin::description() const
+QString MemoPlugin::description() const
 {
     return QStringLiteral("Synchronizes Palm MemoDB with Markdown files");
 }
-QString MemoBackendPlugin::version()     const { return QStringLiteral("2.0"); }
+QString MemoPlugin::version()     const { return QStringLiteral("2.0"); }
 
-// --- IBackendPlugin ---
+// --- Palm backend ---
 
-QStringList MemoBackendPlugin::claimedDatabases() const
-{
-    return { QStringLiteral("MemoDB") };
-}
-
-std::unique_ptr<Kalburator::Sync::IBlobBackend>
-MemoBackendPlugin::createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device)
+std::unique_ptr<Kalburator::Sync::SyncBackend>
+MemoPlugin::createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device)
 {
     if (!device) return nullptr;
     m_palmBackend = std::make_unique<WildPalms::PalmSync::PalmBackend>(device);
@@ -49,24 +43,24 @@ MemoBackendPlugin::createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *devic
 
 // --- Main view ---
 
-bool MemoBackendPlugin::hasMainView() const { return true; }
+bool MemoPlugin::hasMainView() const { return true; }
 
-QWidget *MemoBackendPlugin::createMainView(QWidget *parent) const
+QWidget *MemoPlugin::createMainView(QWidget *parent) const
 {
     return new MemoView(parent);
 }
 
-QString MemoBackendPlugin::mainViewName() const { return QStringLiteral("Memos"); }
+QString MemoPlugin::mainViewName() const { return QStringLiteral("Memos"); }
 
-QIcon MemoBackendPlugin::mainViewIcon() const
+QIcon MemoPlugin::mainViewIcon() const
 {
     return QIcon::fromTheme(QStringLiteral("view-pim-notes"));
 }
 
 // --- Conflict presentation ---
 
-void MemoBackendPlugin::enrichConflictSnapshot(
-    Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot,
+void MemoPlugin::enrichConflictSnapshot(
+    Kalburator::Conflict::RecordSnapshot &snapshot,
     bool isSourceSide) const
 {
     if (snapshot.content.isEmpty()) return;
@@ -87,8 +81,8 @@ void MemoBackendPlugin::enrichConflictSnapshot(
     snapshot.contentType = QStringLiteral("text/plain");
 }
 
-QString MemoBackendPlugin::formatConflictRecordHtml(
-    const Kalburator::Sync::QSyncCore::RecordSnapshot &snapshot) const
+QString MemoPlugin::formatConflictRecordHtml(
+    const Kalburator::Conflict::RecordSnapshot &snapshot) const
 {
     QString html;
     const QString title = snapshot.metadata.value(QStringLiteral("title")).toString();
@@ -101,11 +95,3 @@ QString MemoBackendPlugin::formatConflictRecordHtml(
 }
 
 } // namespace WildPalms::Memo
-
-#include <KPluginFactory>
-
-K_PLUGIN_FACTORY_WITH_JSON(MemoBackendPluginFactory,
-                           "memo-backend-plugin.json",
-                           registerPlugin<WildPalms::Memo::MemoBackendPlugin>();)
-
-#include "memobackendplugin.moc"

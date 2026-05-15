@@ -1,9 +1,7 @@
 #ifndef WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 #define WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 
-#include "iblobbackend.h"
-
-#include <QObject>
+#include "syncbackend.h"
 
 namespace WildPalms::PalmSync { class PalmBackend; }
 namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
@@ -11,7 +9,7 @@ namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
 namespace WildPalms::Memo {
 
 /**
- * @brief Transcoding IBlobBackend wrapping PalmBackend's palm:memo.
+ * @brief Transcoding SyncBackend wrapping PalmBackend's palm:memo.
  *
  * Exposes exactly one collection ("palm:memo") with type "memos".
  * loadRecords returns Markdown bytes (via MemoCodec -> MemoMarkdown);
@@ -23,8 +21,11 @@ namespace WildPalms::Memo {
  * the MemoBlobBackend. categoryStore may be null — when null the
  * encoder omits categoryName, and the decoder falls back to slot 0
  * for name-only `category:` strings.
+ *
+ * K.8b: lifted from IBlobBackend to SyncBackend directly (Task 3).
+ * Calendar virtuals on SyncBackend are no-ops by default (K.4).
  */
-class MemoBlobBackend : public QObject, public Kalburator::Sync::IBlobBackend
+class MemoBlobBackend : public Kalburator::Sync::SyncBackend
 {
     Q_OBJECT
 public:
@@ -37,7 +38,14 @@ public:
         QObject *parent = nullptr);
     ~MemoBlobBackend() override;
 
-    // --- Identity ---
+    // --- SyncBackendBase identity (pure virtuals) ---
+    QString backendType() const override { return QStringLiteral("palm-memo"); }
+    QList<Kalburator::Shape::Shape> nativeShapes() const override {
+        return { { Kalburator::Shape::DomainId{QStringLiteral("memo")},
+                   Kalburator::Shape::EncodingId{QStringLiteral("text")} } };
+    }
+
+    // --- IBlobBackend identity (override SyncBackendBase defaults) ---
     QString backendId()   const override;
     QString displayName() const override;
     bool    isAvailable() const override;
