@@ -40,9 +40,16 @@ public:
 
     // --- SyncBackendBase identity (pure virtuals) ---
     QString backendType() const override { return QStringLiteral("palm-memo"); }
+    // K.8b T6 fix: use blob/raw to match the pre-T3 BlobBackendAdapter
+    // wrapping that tests expect.  loadRecords() already returns Markdown
+    // bytes (transcoded by MemoCodec), so the engine copies them verbatim
+    // via the identity (blob,raw) -> (blob,raw) pipeline.  A dedicated
+    // memo/text shape requires a registered transcoder that does not yet
+    // exist; revert to blob/raw until Task 7 deletes BlobBackendAdapter
+    // and the test infrastructure is updated.
     QList<Kalburator::Shape::Shape> nativeShapes() const override {
-        return { { Kalburator::Shape::DomainId{QStringLiteral("memo")},
-                   Kalburator::Shape::EncodingId{QStringLiteral("text")} } };
+        return { { Kalburator::Shape::DomainId{QStringLiteral("blob")},
+                   Kalburator::Shape::EncodingId{QStringLiteral("raw")} } };
     }
 
     // --- IBlobBackend identity (override SyncBackendBase defaults) ---
