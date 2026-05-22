@@ -1,7 +1,5 @@
 #include "memoblobbackend.h"
 
-#include <QCryptographicHash>
-
 #include "memomarkdown.h"
 #include "palm/calendar/categorymappingstore.h"
 #include "palm/codecs/memocodec.h"
@@ -14,12 +12,6 @@
 namespace WildPalms::Memo {
 
 namespace {
-
-QString sha256Hex(const QByteArray &bytes)
-{
-    return QString::fromLatin1(
-        QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
-}
 
 Kalburator::Sync::BackendRecord palmToMarkdownRecord(
     const WildPalms::PalmSync::PalmRecord &pr,
@@ -44,7 +36,7 @@ Kalburator::Sync::BackendRecord palmToMarkdownRecord(
         QStringLiteral("MemoDB"), pr.recordId);
     br.type = QStringLiteral("memos");
     br.data = bytes;
-    br.contentHash = sha256Hex(bytes);
+    br.contentHash = pr.contentHash();
     br.lastModified = pr.lastModified;
     br.isDeleted = pr.isDeleted();
     return br;
