@@ -159,18 +159,22 @@ void MemoView::loadMemos()
         return;
     }
 
-    QString memosPath = m_syncPath + QStringLiteral("/memos");
-    QDir memosDir(memosPath);
-
-    if (!memosDir.exists()) {
-        // Create memos directory if it doesn't exist
-        QDir().mkpath(memosPath);
+    // Aggregate-read across all per-Palm-collection subdirs under
+    // <sync>/rawfiles/memo/<col>/ (PalmRuntime writes one dir per
+    // Palm slot — palm_memo).
+    QDir rawfilesDir(m_syncPath + QStringLiteral("/rawfiles/memo"));
+    if (!rawfilesDir.exists()) {
+        QDir().mkpath(rawfilesDir.absolutePath());
     }
-
-    // Load all .md and .txt files from memos directory
     QStringList filters;
     filters << QStringLiteral("*.md") << QStringLiteral("*.txt");
-    QFileInfoList files = memosDir.entryInfoList(filters, QDir::Files, QDir::Name);
+    QFileInfoList files;
+    const QFileInfoList colDirs = rawfilesDir.entryInfoList(
+        QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+    for (const QFileInfo &col : colDirs) {
+        files.append(QDir(col.filePath()).entryInfoList(
+            filters, QDir::Files, QDir::Name));
+    }
 
     // Regex for YAML frontmatter parsing
     static QRegularExpression frontmatterRe(
@@ -341,7 +345,9 @@ void MemoView::onNewMemo()
     memo.isDirty = true;
 
     // Generate filename
-    QString memosPath = m_syncPath + QStringLiteral("/memos");
+    // New/saved memos land in the Palm default collection so they round-trip
+    // through sync (matches palm_memo dir PalmRuntime creates).
+    QString memosPath = m_syncPath + QStringLiteral("/rawfiles/memo/palm_memo");
     QDir().mkpath(memosPath);
 
     QString baseFilename = QStringLiteral("memo_%1.md").arg(memo.recordId);
@@ -415,7 +421,9 @@ bool MemoView::saveMemo(int index)
     MemoItem &memo = m_memos[index];
 
     // Ensure memos directory exists
-    QString memosPath = m_syncPath + QStringLiteral("/memos");
+    // New/saved memos land in the Palm default collection so they round-trip
+    // through sync (matches palm_memo dir PalmRuntime creates).
+    QString memosPath = m_syncPath + QStringLiteral("/rawfiles/memo/palm_memo");
     QDir().mkpath(memosPath);
 
     // Generate filename if needed
