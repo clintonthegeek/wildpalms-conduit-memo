@@ -177,7 +177,13 @@ bool MemoBlobBackend::updateRecord(const Kalburator::Sync::BackendRecord &record
 bool MemoBlobBackend::deleteRecord(const QString &recordId)
 {
     if (!m_palmBackend) return false;
-    return m_palmBackend->deleteRecord(recordId);
+    QString dbName;
+    std::uint32_t numericId = 0;
+    if (!WildPalms::PalmSync::PalmBackend::decodeRecordId(
+            recordId, &dbName, &numericId)) {
+        return false;
+    }
+    return m_palmBackend->deletePalmRecord(QStringLiteral("MemoDB"), numericId);
 }
 
 QList<Kalburator::Sync::BackendRecord> MemoBlobBackend::modifiedSince(
