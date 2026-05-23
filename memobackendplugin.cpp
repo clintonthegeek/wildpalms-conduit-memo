@@ -3,6 +3,8 @@
 #include "memoblobbackend.h"
 #include "memoview.h"
 
+#include "palm/calendar/categoryappinforeader.h"
+#include "palm/calendar/categorymappingstore.h"
 #include "palm/codecs/memocodec.h"
 #include "palm/sync/palmbackend.h"
 #include "runtime/palmdeviceaccess.h"
@@ -15,7 +17,10 @@
 
 namespace WildPalms::Memo {
 
-MemoPlugin::MemoPlugin() = default;
+MemoPlugin::MemoPlugin()
+    : m_categoryStore(
+        std::make_unique<WildPalms::PalmCalendar::CategoryMappingStore>())
+{}
 MemoPlugin::~MemoPlugin() = default;
 
 // --- Plugin identity ---
@@ -38,7 +43,22 @@ MemoPlugin::createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device)
 {
     if (!device) return nullptr;
     m_palmBackend = std::make_unique<WildPalms::PalmSync::PalmBackend>(device);
+
+    // F.3: populate the plugin-local category store for snapshot write-back
+    // into Profile. MemoBlobBackend still receives nullptr — memo records
+    // aren't routed by category, so this has no effect on sync behavior.
+    WildPalms::PalmCalendar::populateFromAppInfo(
+        *m_categoryStore,
+        QStringLiteral("MemoDB"),
+        m_palmBackend->readAppBlock(QStringLiteral("MemoDB")));
+
     return std::make_unique<MemoBlobBackend>(m_palmBackend.get(), /*categoryStore=*/nullptr);
+}
+
+QStringList MemoPlugin::categorySlotNames() const
+{
+    if (!m_categoryStore) return {};
+    return m_categoryStore->sixteenSlotNames(primaryDbName());
 }
 
 // --- Main view ---

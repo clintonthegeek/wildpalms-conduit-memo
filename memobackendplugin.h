@@ -7,6 +7,7 @@
 
 namespace Kalburator::Conflict { struct RecordSnapshot; }
 namespace Kalburator::Sync { class SyncBackend; }
+namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
 namespace WildPalms::PalmSync { class PalmBackend; }
 namespace WildPalms::Runtime { class PalmDeviceAccess; }
 
@@ -45,6 +46,13 @@ public:
     QString     version()          const;
     QStringList claimedDatabases() const { return {QStringLiteral("MemoDB")}; }
 
+    // F.3: Category slot snapshot — MemoPlugin keeps an internal
+    // CategoryMappingStore purely for write-back into Profile.
+    // MemoBlobBackend still receives nullptr (memos aren't routed by
+    // category yet), so this has no effect on sync behavior.
+    QString     primaryDbName()       const { return QStringLiteral("MemoDB"); }
+    QStringList categorySlotNames()   const;
+
     // Palm backend — called directly by PalmRuntime (Task 6)
     std::unique_ptr<Kalburator::Sync::SyncBackend>
         createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device);
@@ -63,6 +71,7 @@ public:
         const Kalburator::Conflict::RecordSnapshot &snapshot) const;
 
 private:
+    std::unique_ptr<WildPalms::PalmCalendar::CategoryMappingStore> m_categoryStore;
     std::unique_ptr<WildPalms::PalmSync::PalmBackend> m_palmBackend;
 };
 
