@@ -4,8 +4,6 @@
 #include "memoview.h"
 #include "notedomainextension.h"
 
-#include "transformationregistry.h"
-
 #include "palm/calendar/categoryappinforeader.h"
 #include "palm/calendar/categorymappingstore.h"
 #include "palm/codecs/memocodec.h"
@@ -24,13 +22,16 @@ MemoPlugin::MemoPlugin()
     : m_categoryStore(
         std::make_unique<WildPalms::PalmCalendar::CategoryMappingStore>())
 {
-    // Phase 5: register the (note, palm) peer shape and palm<->markdown edges
-    // with the process-wide TransformationRegistry at plugin construction
-    // (mirrors CalendarBackendPlugin). Idempotent across instances.
-    NoteDomainExtension::registerWith(
-        Kalburator::Shape::TransformationRegistry::instance());
+    // O7: shape registration moved out of the ctor into shapeContributions();
+    // PluginManager registers the contribution into the injected ShapeRegistries.
 }
 MemoPlugin::~MemoPlugin() = default;
+
+QList<std::shared_ptr<Kalburator::Shape::ShapeContribution>>
+MemoPlugin::shapeContributions() const
+{
+    return { std::make_shared<NotePalmShapes>() };
+}
 
 // --- Plugin identity ---
 

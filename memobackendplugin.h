@@ -38,6 +38,12 @@ public:
     QList<std::shared_ptr<Kalburator::Sync::BackendContribution>>
         backendContributions() const override { return {}; }
 
+    // O7: contribute the (note, palm) peer shape + palm<->canon edges via the
+    // shape-graph contribution system (PluginManager registers them into the
+    // injected ShapeRegistries). Replaces the old ctor-time registerWith().
+    QList<std::shared_ptr<Kalburator::Shape::ShapeContribution>>
+        shapeContributions() const override;
+
     // Plugin identity
     QString     pluginId()         const { return QStringLiteral("memo"); }
     QString     displayName()      const;
