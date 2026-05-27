@@ -28,7 +28,10 @@ Kalburator::Sync::BackendRecord palmToWireRecord(
 
 bool isMemoCollection(const QString &collectionId)
 {
-    return collectionId == QLatin1String(MemoBlobBackend::CollectionId);
+    // Accept the legacy per-db collection id ("palm:memo") and the domain-level
+    // collection id ("palm:note") — both cover the entire MemoDB.
+    return collectionId == QLatin1String(MemoBlobBackend::CollectionId)
+        || collectionId == QLatin1String(MemoBlobBackend::DomainCollectionId);
 }
 
 } // namespace
@@ -54,11 +57,19 @@ bool    MemoBlobBackend::isAvailable() const
 
 QList<Kalburator::Sync::CollectionInfo> MemoBlobBackend::availableCollections()
 {
-    Kalburator::Sync::CollectionInfo info;
-    info.id   = QLatin1String(CollectionId);
-    info.name = QStringLiteral("Memos");
-    info.type = QStringLiteral("memos");
-    return { info };
+    // Domain-level collection: all MemoDB records, addressed by domain id.
+    Kalburator::Sync::CollectionInfo domain;
+    domain.id   = QLatin1String(DomainCollectionId);
+    domain.name = QStringLiteral("Note");
+    domain.type = QStringLiteral("note");
+
+    // Legacy per-db collection id (kept for backwards compatibility).
+    Kalburator::Sync::CollectionInfo legacy;
+    legacy.id   = QLatin1String(CollectionId);
+    legacy.name = QStringLiteral("Memos");
+    legacy.type = QStringLiteral("memos");
+
+    return { domain, legacy };
 }
 
 Kalburator::Sync::CollectionInfo MemoBlobBackend::collectionInfo(const QString &collectionId)

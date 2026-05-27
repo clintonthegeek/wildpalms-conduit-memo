@@ -29,8 +29,9 @@ class MemoBlobBackend : public Kalburator::Sync::SyncBackend
 {
     Q_OBJECT
 public:
-    static constexpr const char *CollectionId = "palm:memo";
-    static constexpr const char *PalmDbName   = "MemoDB";
+    static constexpr const char *CollectionId       = "palm:memo";
+    static constexpr const char *DomainCollectionId = "palm:note";
+    static constexpr const char *PalmDbName         = "MemoDB";
 
     explicit MemoBlobBackend(
         WildPalms::PalmSync::PalmBackend *palmBackend,
