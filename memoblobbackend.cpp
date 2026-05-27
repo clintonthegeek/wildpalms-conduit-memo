@@ -75,7 +75,12 @@ QList<Kalburator::Sync::CollectionInfo> MemoBlobBackend::availableCollections()
 Kalburator::Sync::CollectionInfo MemoBlobBackend::collectionInfo(const QString &collectionId)
 {
     if (!isMemoCollection(collectionId)) return {};
-    return availableCollections().first();
+    // Return the entry whose id matches the request — both "palm:note" (domain)
+    // and the legacy "palm:memo" alias resolve to the full MemoDB, but callers
+    // that check the returned id must get back the id they asked for.
+    for (const auto &c : availableCollections())
+        if (c.id == collectionId) return c;
+    return {};
 }
 
 QString MemoBlobBackend::createCollection(const Kalburator::Sync::CollectionInfo &)
