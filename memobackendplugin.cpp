@@ -77,6 +77,12 @@ QStringList MemoPlugin::categorySlotNames() const
     return m_categoryStore->sixteenSlotNames(primaryDbName());
 }
 
+WildPalms::PalmCalendar::CategoryMappingStore *
+MemoPlugin::categoryStore() const
+{
+    return m_categoryStore.get();
+}
+
 // --- Main view ---
 
 bool MemoPlugin::hasMainView() const { return true; }
