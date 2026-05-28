@@ -22,6 +22,12 @@ PropertyCatalogue makePalmCatalogue()
 
 } // namespace
 
+NotePalmShapes::NotePalmShapes(
+    const WildPalms::PalmCalendar::CategoryMappingStore *cats)
+    : m_cats(cats)
+{
+}
+
 DomainId NotePalmShapes::targetDomain() const
 {
     return DomainId{QStringLiteral("note")};
@@ -42,8 +48,8 @@ QList<TransformationEdge> NotePalmShapes::edges() const
     // The canon endpoint is registered by libkalburator's note domain plugin,
     // which loads earlier in the same PluginManager batch.
     return {
-        TransformationEdge{ palm, canon, palmToCanonLoss(), std::make_shared<PalmToCanonStage>() },
-        TransformationEdge{ canon, palm, canonToPalmLoss(), std::make_shared<CanonToPalmStage>() },
+        TransformationEdge{ palm, canon, palmToCanonLoss(), std::make_shared<PalmToCanonStage>(m_cats) },
+        TransformationEdge{ canon, palm, canonToPalmLoss(), std::make_shared<CanonToPalmStage>(m_cats) },
     };
 }
 

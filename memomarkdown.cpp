@@ -3,6 +3,8 @@
 #include <QRegularExpression>
 #include <QStringList>
 
+#include "palm/calendar/categorymappingstore.h"
+
 namespace WildPalms::Memo {
 
 namespace {
@@ -22,7 +24,9 @@ QString sanitiseFilenameStem(const QString &input)
 
 } // namespace
 
-QString encode(const MarkdownMemo &memo)
+QString encode(const MarkdownMemo &memo,
+               const WildPalms::PalmCalendar::CategoryMappingStore *cats,
+               const QString &dbName)
 {
     QString out;
     out.reserve(128 + memo.content.text.size());
@@ -30,14 +34,28 @@ QString encode(const MarkdownMemo &memo)
     out += QStringLiteral("---\n");
     out += QStringLiteral("id: %1\n").arg(memo.recordId);
 
-    const bool hasCategoryName =
-        memo.categoryName.has_value() && !memo.categoryName->isEmpty();
-    if (memo.categorySlot != 0 || hasCategoryName) {
-        out += QStringLiteral("category: %1\n").arg(memo.categorySlot);
+    if (cats && memo.categorySlot != 0) {
+        // Name-based model: write the human-readable category name so that
+        // cross-domain routing can match by name, not by volatile slot index.
+        const QString name = cats->slotName(dbName, memo.categorySlot);
+        if (!name.isEmpty()) {
+            out += QStringLiteral("category: %1\n").arg(name);
+        } else {
+            // Store doesn't know this slot yet — fall back to numeric.
+            out += QStringLiteral("category: %1\n").arg(memo.categorySlot);
+        }
+    } else {
+        // No store: legacy / store-free path. Write numeric slot + optional name.
+        const bool hasCategoryName =
+            memo.categoryName.has_value() && !memo.categoryName->isEmpty();
+        if (memo.categorySlot != 0 || hasCategoryName) {
+            out += QStringLiteral("category: %1\n").arg(memo.categorySlot);
+        }
+        if (hasCategoryName) {
+            out += QStringLiteral("categoryName: %1\n").arg(*memo.categoryName);
+        }
     }
-    if (hasCategoryName) {
-        out += QStringLiteral("categoryName: %1\n").arg(*memo.categoryName);
-    }
+
     if (memo.content.isPrivate) {
         out += QStringLiteral("private: true\n");
     }
@@ -50,7 +68,9 @@ QString encode(const MarkdownMemo &memo)
     return out;
 }
 
-MarkdownMemo decode(const QString &markdown)
+MarkdownMemo decode(const QString &markdown,
+                    const WildPalms::PalmCalendar::CategoryMappingStore *cats,
+                    const QString &dbName)
 {
     MarkdownMemo m;
 
@@ -77,7 +97,12 @@ MarkdownMemo decode(const QString &markdown)
                     const int asInt = value.toInt(&ok);
                     if (ok) {
                         m.categorySlot = asInt;
+                    } else if (cats) {
+                        // Name-based model: resolve name -> slot via the store.
+                        m.categorySlot = cats->slotForName(dbName, value);
+                        m.categoryName = value;
                     } else {
+                        // No store: park the name; slot stays 0.
                         m.categoryName = value;
                     }
                 } else if (key == QStringLiteral("categoryname")) {

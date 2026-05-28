@@ -4,10 +4,22 @@
 #include "markdowncanonstages.h"   // libkalburator Kalburator::Note markdown<->canon
 #include "palm/codecs/memocodec.h"
 #include "palm/sync/palmrecord.h"
+#include "palm/calendar/categorymappingstore.h"
 
 using namespace Kalburator::Shape;
 
 namespace WildPalms::Memo {
+
+// "MemoDB" is the single Palm database name for the Memo application; hardcoded
+// here because each database has its own category AppInfo block and this plugin
+// exclusively handles MemoDB records.
+static const QString kMemoDbName = QStringLiteral("MemoDB");
+
+PalmToCanonStage::PalmToCanonStage(
+    const WildPalms::PalmCalendar::CategoryMappingStore *cats)
+    : m_cats(cats)
+{
+}
 
 QByteArray PalmToCanonStage::transform(const QByteArray &sourceBytes) const
 {
@@ -21,13 +33,19 @@ QByteArray PalmToCanonStage::transform(const QByteArray &sourceBytes) const
                          .value_or(WildPalms::PalmCodecs::Memo{});
     m.content.isPrivate =
         (pr.attributes & WildPalms::PalmSync::PalmRecord::AttrSecret) != 0;
-    // categoryName is decorative + store-dependent; the sync path runs with a
-    // null CategoryMappingStore, so omitting it here is not a regression.
 
     // palm -> markdown (memomarkdown), then markdown -> canon (libkalburator). The
     // entire frontmatter block rides verbatim into providerExtras["frontmatter"].
-    const QByteArray markdown = encode(m).toUtf8();
+    // When m_cats is non-null, encode() writes the category NAME (not slot index)
+    // so cross-domain routing can match by name.
+    const QByteArray markdown = encode(m, m_cats, kMemoDbName).toUtf8();
     return Kalburator::Note::MarkdownToCanonStage{}.transform(markdown);
+}
+
+CanonToPalmStage::CanonToPalmStage(
+    const WildPalms::PalmCalendar::CategoryMappingStore *cats)
+    : m_cats(cats)
+{
 }
 
 QByteArray CanonToPalmStage::transform(const QByteArray &sourceBytes) const
@@ -35,10 +53,11 @@ QByteArray CanonToPalmStage::transform(const QByteArray &sourceBytes) const
     if (sourceBytes.isEmpty()) return {};
 
     // canon -> markdown (libkalburator, re-emits frontmatter verbatim), then
-    // markdown -> palm (memomarkdown).
+    // markdown -> palm (memomarkdown). When m_cats is non-null, decode() resolves
+    // the category NAME in the frontmatter back to a Palm slot index.
     const QByteArray markdown =
         Kalburator::Note::CanonToMarkdownStage{}.transform(sourceBytes);
-    const MarkdownMemo m = decode(QString::fromUtf8(markdown));
+    const MarkdownMemo m = decode(QString::fromUtf8(markdown), m_cats, kMemoDbName);
 
     WildPalms::PalmSync::PalmRecord pr;
     pr.recordId = m.recordId;   // from frontmatter id:; 0 if absent
