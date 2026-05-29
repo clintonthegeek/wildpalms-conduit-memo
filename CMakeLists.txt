@@ -5,6 +5,7 @@ add_library(wildpalms_memo_static STATIC
     palmnotetransformation.cpp       palmnotetransformation.h
     notedomainextension.cpp          notedomainextension.h
     memoview.cpp                     memoview.h
+    hubmemoreader.cpp                hubmemoreader.h
 )
 target_include_directories(wildpalms_memo_static
     PRIVATE
