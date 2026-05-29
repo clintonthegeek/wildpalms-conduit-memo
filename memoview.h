@@ -15,6 +15,8 @@ class CategoryManager;
 class CategoryModel;
 class CategoryFilterWidget;
 
+namespace WildPalms::Memo { class HubMemoReader; }
+
 /**
  * @brief Memo data browser view with editing capabilities
  *
@@ -32,6 +34,7 @@ public:
 public Q_SLOTS:
     void loadFromPath(const QString &syncPath);
     void refresh();
+    void setHubReader(WildPalms::Memo::HubMemoReader *reader);
 
     /**
      * @brief Check if there are unsaved changes
@@ -101,6 +104,7 @@ private:
     QTextEdit *m_contentView;
 
     QString m_syncPath;
+    WildPalms::Memo::HubMemoReader *m_hubReader = nullptr; // borrowed
     QList<MemoItem> m_memos;
     QHash<QListWidgetItem*, int> m_itemToIndex;  // Map list items to memo indices
 

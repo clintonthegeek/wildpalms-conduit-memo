@@ -1,4 +1,5 @@
 #include "memoview.h"
+#include "hubmemoreader.h"
 #include "widgets/common/categorymanager.h"
 #include "widgets/common/categorymodel.h"
 #include "widgets/common/categoryfilterwidget.h"
@@ -53,16 +54,21 @@ void MemoView::setupUI()
     m_newAction = m_toolbar->addAction(QIcon::fromTheme(QStringLiteral("document-new")),
                                        i18n("New Memo"));
     connect(m_newAction, &QAction::triggered, this, &MemoView::onNewMemo);
+    // Sub-project D: edit affordances hidden; the view is read-only against
+    // the hub. Re-enabled by sub-project E once write-through lands.
+    m_newAction->setVisible(false);
 
     m_deleteAction = m_toolbar->addAction(QIcon::fromTheme(QStringLiteral("edit-delete")),
                                           i18n("Delete"));
     m_deleteAction->setEnabled(false);
     connect(m_deleteAction, &QAction::triggered, this, &MemoView::onDeleteMemo);
+    m_deleteAction->setVisible(false);
 
     m_saveAction = m_toolbar->addAction(QIcon::fromTheme(QStringLiteral("document-save")),
                                         i18n("Save"));
     m_saveAction->setEnabled(false);
     connect(m_saveAction, &QAction::triggered, this, &MemoView::onSaveMemo);
+    m_saveAction->setVisible(false);
 
     m_toolbar->addSeparator();
 
@@ -103,6 +109,12 @@ void MemoView::setupUI()
     headerLayout->addStretch();
     layout->addLayout(headerLayout);
 
+    // Sub-project D: per-record category edit hidden; re-enabled by E.
+    m_memoCategoryCombo->setVisible(false);
+    for (QLabel *lbl : this->findChildren<QLabel*>()) {
+        if (lbl->text() == i18n("Memo Category:")) lbl->setVisible(false);
+    }
+
     // Main splitter
     m_splitter = new QSplitter(Qt::Horizontal, this);
 
@@ -142,6 +154,11 @@ void MemoView::refresh()
     loadMemos();
 }
 
+void MemoView::setHubReader(WildPalms::Memo::HubMemoReader *reader)
+{
+    m_hubReader = reader;
+}
+
 void MemoView::loadMemos()
 {
     m_ignoreContentChanges = true;
@@ -153,27 +170,10 @@ void MemoView::loadMemos()
     m_deleteAction->setEnabled(false);
     m_memoCategoryCombo->setEnabled(false);
 
-    if (m_syncPath.isEmpty()) {
-        m_memoList->addItem(i18n("No sync folder selected"));
+    if (!m_hubReader) {
+        m_memoList->addItem(i18n("No memos found"));
         m_ignoreContentChanges = false;
         return;
-    }
-
-    // Aggregate-read across all per-Palm-collection subdirs under
-    // <sync>/rawfiles/memo/<col>/ (PalmRuntime writes one dir per
-    // Palm slot — palm_memo).
-    QDir rawfilesDir(m_syncPath + QStringLiteral("/rawfiles/memo"));
-    if (!rawfilesDir.exists()) {
-        QDir().mkpath(rawfilesDir.absolutePath());
-    }
-    QStringList filters;
-    filters << QStringLiteral("*.md") << QStringLiteral("*.txt");
-    QFileInfoList files;
-    const QFileInfoList colDirs = rawfilesDir.entryInfoList(
-        QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-    for (const QFileInfo &col : colDirs) {
-        files.append(QDir(col.filePath()).entryInfoList(
-            filters, QDir::Files, QDir::Name));
     }
 
     // Regex for YAML frontmatter parsing
@@ -188,18 +188,15 @@ void MemoView::loadMemos()
     static QRegularExpression privateRe(QStringLiteral("^private:\\s*true$"),
                                          QRegularExpression::MultilineOption);
 
-    for (const QFileInfo &fileInfo : files) {
-        QFile file(fileInfo.filePath());
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            continue;
-        }
+    const QStringList ids = m_hubReader->listRecordIds();
+    for (const QString &recordId : ids) {
+        const QByteArray bytes = m_hubReader->recordBytes(recordId);
+        if (bytes.isEmpty()) continue;
 
-        QTextStream stream(&file);
-        QString fullContent = stream.readAll();
-        file.close();
+        const QString fullContent = QString::fromUtf8(bytes);
 
         MemoItem memo;
-        memo.filePath = fileInfo.filePath();
+        memo.filePath = recordId;  // hub record id (opaque to view)
         memo.recordId = 0;
         memo.category = CategoryManager::unfiledCategoryName();
         memo.isPrivate = false;

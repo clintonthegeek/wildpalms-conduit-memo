@@ -3,13 +3,14 @@
 
 #include <memory>
 
-#include "plugin.h"
+#include "plugins/pimplugin.h"
 
 namespace Kalburator::Conflict { struct RecordSnapshot; }
 namespace Kalburator::Sync { class SyncBackend; }
+namespace WildPalms::Memo { class HubMemoReader; }
 namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
 namespace WildPalms::PalmSync { class PalmBackend; }
-namespace WildPalms::Runtime { class PalmDeviceAccess; }
+namespace WildPalms::Runtime { class PalmDeviceAccess; class PalmRuntime; }
 
 class QIcon;
 class QWidget;
@@ -27,7 +28,7 @@ namespace WildPalms::Memo {
  *     — called directly by PalmRuntime.
  *   - MemoView as a main-window tab.
  */
-class MemoPlugin : public Kalburator::Plugin
+class MemoPlugin : public WildPalms::Plugins::PimPlugin
 {
 public:
     MemoPlugin();
@@ -62,6 +63,10 @@ public:
     // Task 3: borrowed accessor for hub<->remote routing translation.
     WildPalms::PalmCalendar::CategoryMappingStore *categoryStore() const;
 
+    // Sub-project D: PimPlugin lifecycle hooks.
+    void setHub(Kalburator::Sync::SyncBackend *hub) override;
+    void setRuntime(WildPalms::Runtime::PalmRuntime *runtime) override;
+
     // Palm backend — called directly by PalmRuntime (Task 6)
     std::unique_ptr<Kalburator::Sync::SyncBackend>
         createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device);
@@ -82,6 +87,11 @@ public:
 private:
     std::unique_ptr<WildPalms::PalmCalendar::CategoryMappingStore> m_categoryStore;
     std::unique_ptr<WildPalms::PalmSync::PalmBackend> m_palmBackend;
+
+    // Sub-project D: per-domain reader over the canonical hub; constructed
+    // in setHub, fed to MemoView in createMainView.
+    std::unique_ptr<WildPalms::Memo::HubMemoReader> m_hubReader;
+    WildPalms::Runtime::PalmRuntime *m_runtime = nullptr;       // borrowed
 };
 
 } // namespace WildPalms::Memo

@@ -1,5 +1,6 @@
 #include "memobackendplugin.h"
 
+#include "hubmemoreader.h"
 #include "memoblobbackend.h"
 #include "memoview.h"
 #include "notedomainextension.h"
@@ -9,6 +10,7 @@
 #include "palm/codecs/memocodec.h"
 #include "palm/sync/palmbackend.h"
 #include "runtime/palmdeviceaccess.h"
+#include "runtime/palmruntime.h"
 
 #include "conflictrecord.h"   // Kalburator::Conflict::RecordSnapshot
 
@@ -89,7 +91,26 @@ bool MemoPlugin::hasMainView() const { return true; }
 
 QWidget *MemoPlugin::createMainView(QWidget *parent) const
 {
-    return new MemoView(parent);
+    auto *v = new MemoView(parent);
+    v->setHubReader(m_hubReader.get());
+    if (m_runtime) {
+        QObject::connect(m_runtime,
+                         &WildPalms::Runtime::PalmRuntime::syncCompleted,
+                         v, &MemoView::refresh);
+    }
+    return v;
+}
+
+void MemoPlugin::setHub(Kalburator::Sync::SyncBackend *hub)
+{
+    Q_ASSERT(hub);
+    m_hubReader = std::make_unique<WildPalms::Memo::HubMemoReader>(
+        hub, QStringLiteral("palm:memo"));
+}
+
+void MemoPlugin::setRuntime(WildPalms::Runtime::PalmRuntime *runtime)
+{
+    m_runtime = runtime;
 }
 
 QString MemoPlugin::mainViewName() const { return QStringLiteral("Memos"); }
