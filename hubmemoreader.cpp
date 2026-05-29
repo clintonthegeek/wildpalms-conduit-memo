@@ -1,6 +1,6 @@
 #include "hubmemoreader.h"
 
-#include <syncbackend.h>
+#include <syncbackendbase.h>
 #include <backendrecord.h>
 
 namespace {
@@ -20,7 +20,7 @@ QString stripCollectionPrefix(const QString &recordId,
 
 namespace WildPalms::Memo {
 
-HubMemoReader::HubMemoReader(Kalburator::Sync::SyncBackend *hub,
+HubMemoReader::HubMemoReader(Kalburator::Sync::SyncBackendBase *hub,
                              QString collectionId)
     : m_hub(hub)
     , m_collectionId(std::move(collectionId))

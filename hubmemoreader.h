@@ -5,7 +5,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace Kalburator::Sync { class SyncBackend; }
+namespace Kalburator::Sync { class SyncBackendBase; }
 
 namespace WildPalms::Memo {
 
@@ -14,7 +14,7 @@ namespace WildPalms::Memo {
  *        ("wp-hub" GenericSqliteBackend, collection "palm:memo").
  *
  * Read-only. The view (MemoView) talks to this facade -- never
- * to Kalburator::Sync::SyncBackend directly. The reader owns no Qt
+ * to Kalburator::Sync::SyncBackendBase directly. The reader owns no Qt
  * signals; refresh is driven by PalmRuntime::syncCompleted.
  *
  * Lifetime: the hub pointer is borrowed and outlives the reader.
@@ -23,7 +23,7 @@ namespace WildPalms::Memo {
  */
 class HubMemoReader {
 public:
-    HubMemoReader(Kalburator::Sync::SyncBackend *hub,
+    HubMemoReader(Kalburator::Sync::SyncBackendBase *hub,
                   QString collectionId);
 
     QStringList listRecordIds() const;
@@ -31,7 +31,7 @@ public:
     QString     collectionId() const { return m_collectionId; }
 
 private:
-    Kalburator::Sync::SyncBackend *m_hub;
+    Kalburator::Sync::SyncBackendBase *m_hub;
     QString m_collectionId;
 };
 

@@ -101,7 +101,7 @@ QWidget *MemoPlugin::createMainView(QWidget *parent) const
     return v;
 }
 
-void MemoPlugin::setHub(Kalburator::Sync::SyncBackend *hub)
+void MemoPlugin::setHub(Kalburator::Sync::SyncBackendBase *hub)
 {
     Q_ASSERT(hub);
     m_hubReader = std::make_unique<WildPalms::Memo::HubMemoReader>(
