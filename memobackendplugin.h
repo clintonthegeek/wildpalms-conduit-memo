@@ -68,7 +68,7 @@ public:
     void setRuntime(WildPalms::Runtime::PalmRuntime *runtime) override;
 
     // Palm backend — called directly by PalmRuntime (Task 6)
-    std::unique_ptr<Kalburator::Sync::SyncBackend>
+    std::unique_ptr<Kalburator::Sync::SyncBackendBase>
         createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device);
 
     // Main view

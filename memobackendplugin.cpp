@@ -56,7 +56,7 @@ QString MemoPlugin::version()     const { return QStringLiteral("2.0"); }
 
 // --- Palm backend ---
 
-std::unique_ptr<Kalburator::Sync::SyncBackend>
+std::unique_ptr<Kalburator::Sync::SyncBackendBase>
 MemoPlugin::createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device)
 {
     if (!device) return nullptr;

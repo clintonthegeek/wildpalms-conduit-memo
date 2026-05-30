@@ -1,7 +1,7 @@
 #ifndef WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 #define WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 
-#include "syncbackend.h"
+#include "syncbackendbase.h"
 
 namespace WildPalms::PalmSync { class PalmBackend; }
 namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
@@ -23,9 +23,11 @@ namespace WildPalms::Memo {
  * for name-only `category:` strings.
  *
  * K.8b: lifted from IBlobBackend to SyncBackend directly (Task 3).
- * Calendar virtuals on SyncBackend are no-ops by default (K.4).
+ * P3 (2026-05-28): reparented to SyncBackendBase — the calendar
+ * virtuals are gone, not just no-op. dispatchBlobSync reaches us
+ * through the neutral IBlobBackend methods.
  */
-class MemoBlobBackend : public Kalburator::Sync::SyncBackend
+class MemoBlobBackend : public Kalburator::Sync::SyncBackendBase
 {
     Q_OBJECT
 public:
