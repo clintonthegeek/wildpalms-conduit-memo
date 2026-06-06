@@ -172,23 +172,14 @@ bool MemoBlobBackend::wipeCollection(const QString &collectionId)
     // Clobber path: drop every record from MemoDB so the subsequent push has
     // a clean target. collectionId can be either the domain id ("palm:note")
     // or the legacy per-db id ("palm:memo") — both address the full MemoDB.
-    if (!m_palmBackend || !isMemoCollection(collectionId)) return false;
-
+    //
     // The spec also names the OS5-enhanced MemosDB-PMem database; we wipe
     // the classic MemoDB here (the DB WildPalms syncs against). The
     // enhanced DB is best-effort and would require IPalmDatabaseAccess to
     // expose dlp_DeleteDB / dlp_CreateDB; that wire-level fast path is
     // deferred until the WP-side surface lands (see Task 5/6/Task 9 deps).
-    constexpr const char *kClassicDb = "MemoDB";
-
-    bool ok = true;
-    const auto records = m_palmBackend->loadPalmRecords(QLatin1String(kClassicDb));
-    for (const auto &pr : records) {
-        if (!m_palmBackend->deletePalmRecord(QLatin1String(kClassicDb), pr.recordId)) {
-            ok = false;
-        }
-    }
-    return ok;
+    if (!m_palmBackend || !isMemoCollection(collectionId)) return false;
+    return m_palmBackend->wipePalmDatabase(QStringLiteral("MemoDB"));
 }
 
 QList<Kalburator::Sync::BackendRecord> MemoBlobBackend::modifiedSince(
