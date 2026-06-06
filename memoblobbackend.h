@@ -71,6 +71,15 @@ public:
     bool    updateRecord(const Kalburator::Sync::BackendRecord &record) override;
     bool    deleteRecord(const QString &recordId) override;
 
+    // --- Clobber path ---
+    /// Drop every record from MemoDB (and best-effort the OS5-enhanced
+    /// MemosDB-PMem if present), leaving the collection empty for a
+    /// subsequent re-push. Invoked by SyncEngine when ExecutionOverride::
+    /// clobber is set on the SyncRequest. Returns false if any per-record
+    /// delete failed; partial-wipe is left in place for the caller to
+    /// observe via loadRecords.
+    bool wipeCollection(const QString &collectionId) override;
+
     // --- Change detection ---
     QList<Kalburator::Sync::BackendRecord> modifiedSince(
         const QString &collectionId, const QDateTime &since) override;
