@@ -51,17 +51,28 @@ public:
     QIcon       icon()             const;
     QString     description()      const;
     QString     version()          const;
-    QStringList claimedDatabases() const { return {QStringLiteral("MemoDB")}; }
+    QStringList claimedDatabases() const override { return {QStringLiteral("MemoDB")}; }
+
+    // ── Conduit descriptor (PimPlugin virtuals, substrate A1) ──────
+    // NB: conduitId is "memo" (the persisted/frozen id) but the hub domain
+    // is "note". createConflictHandler is intentionally not overridden —
+    // the PimPlugin base default (nullptr) covers memo.
+    QString conduitId() const override { return pluginId(); }
+    Kalburator::Shape::DomainId domain() const override
+    { return Kalburator::Shape::DomainId{QStringLiteral("note")}; }
+    QString conduitDisplayName() const override { return displayName(); }
+    QString conduitIconName() const override
+    { return QStringLiteral("text-x-generic"); }
 
     // F.3: Category slot snapshot — MemoPlugin keeps an internal
     // CategoryMappingStore purely for write-back into Profile.
     // MemoBlobBackend still receives nullptr (memos aren't routed by
     // category yet), so this has no effect on sync behavior.
-    QString     primaryDbName()       const { return QStringLiteral("MemoDB"); }
-    QStringList categorySlotNames()   const;
+    QString     primaryDbName()       const override { return QStringLiteral("MemoDB"); }
+    QStringList categorySlotNames()   const override;
 
     // Task 3: borrowed accessor for hub<->remote routing translation.
-    WildPalms::PalmCalendar::CategoryMappingStore *categoryStore() const;
+    WildPalms::PalmCalendar::CategoryMappingStore *categoryStore() const override;
 
     // Sub-project D: PimPlugin lifecycle hooks.
     void setHub(Kalburator::Sync::SyncBackendBase *hub) override;
@@ -69,11 +80,11 @@ public:
 
     // Palm backend — called directly by PalmRuntime (Task 6)
     std::unique_ptr<Kalburator::Sync::SyncBackendBase>
-        createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device);
+        createPalmBackend(WildPalms::Runtime::PalmDeviceAccess *device) override;
 
     // Main view
-    bool     hasMainView()   const;
-    QWidget *createMainView(QWidget *parent) const;
+    bool     hasMainView()   const override;
+    QWidget *createMainView(QWidget *parent) const override;
     QString  mainViewName()  const;
     QIcon    mainViewIcon()  const;
 
