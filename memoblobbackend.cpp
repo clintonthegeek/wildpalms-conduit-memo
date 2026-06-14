@@ -48,6 +48,12 @@ MemoBlobBackend::MemoBlobBackend(
 
 MemoBlobBackend::~MemoBlobBackend() = default;
 
+QString MemoBlobBackend::currentDbRevision() const
+{
+    return m_palmBackend ? m_palmBackend->databaseRevision(QStringLiteral("MemoDB"))
+                         : QString();
+}
+
 QString MemoBlobBackend::backendId()   const { return QStringLiteral("palm-memo"); }
 QString MemoBlobBackend::displayName() const { return QStringLiteral("Palm Memos"); }
 bool    MemoBlobBackend::isAvailable() const

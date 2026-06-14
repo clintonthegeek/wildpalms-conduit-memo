@@ -2,6 +2,7 @@
 #define WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 
 #include "syncbackendbase.h"
+#include "palm/sync/palmchangedetection.h"
 
 namespace WildPalms::PalmSync { class PalmBackend; }
 namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
@@ -27,7 +28,8 @@ namespace WildPalms::Memo {
  * virtuals are gone, not just no-op. dispatchBlobSync reaches us
  * through the neutral IBlobBackend methods.
  */
-class MemoBlobBackend : public Kalburator::Sync::SyncBackendBase
+class MemoBlobBackend : public Kalburator::Sync::SyncBackendBase,
+                        public WildPalms::PalmSync::PalmChangeDetection
 {
     Q_OBJECT
 public:
@@ -92,6 +94,9 @@ Q_SIGNALS:
     void recordDeleted(const QString &recordId);
     void errorOccurred(const QString &error);
     void progressUpdated(int current, int total, const QString &message);
+
+protected:
+    QString currentDbRevision() const override;
 
 private:
     WildPalms::PalmSync::PalmBackend              *m_palmBackend = nullptr;
