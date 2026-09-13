@@ -3,8 +3,8 @@
 #include "palm/sync/palmbackend.h"
 #include "palm/sync/palmrecord.h"
 
-#include "backendrecord.h"
-#include "collectioninfo.h"
+#include <kalburator/types/backendrecord.h>
+#include <kalburator/types/collectioninfo.h>
 
 namespace WildPalms::Memo {
 

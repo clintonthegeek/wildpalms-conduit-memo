@@ -1,7 +1,7 @@
 #include "notedomainextension.h"
 
 #include "palmnotetransformation.h"
-#include <propertycatalogue.h>
+#include <kalburator/shape/propertycatalogue.h>
 
 using namespace Kalburator::Shape;
 

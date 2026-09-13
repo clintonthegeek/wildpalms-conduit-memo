@@ -11,12 +11,6 @@ target_include_directories(wildpalms_memo_static
     PRIVATE
         ${CMAKE_SOURCE_DIR}/src
 )
-# Prepend libkalburator's sync dir so #include "syncbackend.h" resolves
-# to Kalburator::Sync::SyncBackend (not the legacy WildPalms one).
-target_include_directories(wildpalms_memo_static BEFORE
-    PRIVATE
-        $<TARGET_PROPERTY:Kalburator::Sync,INTERFACE_INCLUDE_DIRECTORIES>
-)
 set_target_properties(wildpalms_memo_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(wildpalms_memo_static

@@ -1,7 +1,7 @@
 #ifndef WILDPALMS_MEMO_PALMNOTETRANSFORMATION_H
 #define WILDPALMS_MEMO_PALMNOTETRANSFORMATION_H
 
-#include "transformationedge.h"
+#include <kalburator/shape/transformationedge.h>
 
 namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
 

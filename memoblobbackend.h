@@ -1,7 +1,7 @@
 #ifndef WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 #define WILDPALMS_MEMO_MEMOBLOBBACKEND_H
 
-#include "syncbackendbase.h"
+#include <kalburator/sync/syncbackendbase.h>
 #include "palm/sync/palmchangedetection.h"
 
 namespace WildPalms::PalmSync { class PalmBackend; }

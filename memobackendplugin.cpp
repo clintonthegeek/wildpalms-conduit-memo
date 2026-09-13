@@ -12,7 +12,7 @@
 #include "runtime/palmdeviceaccess.h"
 #include "runtime/palmruntime.h"
 
-#include "conflictrecord.h"   // Kalburator::Conflict::RecordSnapshot
+#include <kalburator/conflict/conflictrecord.h>   // Kalburator::Conflict::RecordSnapshot
 
 #include <QIcon>
 #include <QString>

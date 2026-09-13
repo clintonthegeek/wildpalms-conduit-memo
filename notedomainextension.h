@@ -1,7 +1,7 @@
 #ifndef WILDPALMS_MEMO_NOTEDOMAINEXTENSION_H
 #define WILDPALMS_MEMO_NOTEDOMAINEXTENSION_H
 
-#include <shapecontribution.h>
+#include <kalburator/shape/shapecontribution.h>
 
 namespace WildPalms::PalmCalendar { class CategoryMappingStore; }
 

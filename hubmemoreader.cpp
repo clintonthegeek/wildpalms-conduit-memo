@@ -1,7 +1,7 @@
 #include "hubmemoreader.h"
 
-#include <syncbackendbase.h>
-#include <backendrecord.h>
+#include <kalburator/sync/syncbackendbase.h>
+#include <kalburator/types/backendrecord.h>
 
 namespace {
 

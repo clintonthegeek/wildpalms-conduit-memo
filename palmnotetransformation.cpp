@@ -1,7 +1,7 @@
 #include "palmnotetransformation.h"
 
 #include "memomarkdown.h"
-#include "markdowncanonstages.h"   // libkalburator Kalburator::Note markdown<->canon
+#include <kalburator/note/markdowncanonstages.h>   // libkalburator Kalburator::Note markdown<->canon
 #include "palm/codecs/memocodec.h"
 #include "palm/sync/palmrecord.h"
 #include "palm/calendar/categorymappingstore.h"
